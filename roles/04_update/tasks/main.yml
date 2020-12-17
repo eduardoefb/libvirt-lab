@@ -1,0 +1,19 @@
+---
+  - include_vars: "{{ playbook_dir }}/config.yml"      
+  - include_vars: "main.yml"
+
+  - name: Update system
+    yum:
+      name: '*'
+      state: 'latest'
+
+  - name: check for reboot hint
+    shell: if [ $(rpm -q --last kernel | awk 'NR==1 {print $1}') != kernel-$(uname -r) ]; then echo 'reboot'; else echo 'Kernel is current'; fi
+    ignore_errors: true
+    register: reboot_hint
+
+  - name: Reboot after update  
+    reboot:
+      msg: Reboot triggered
+      reboot_timeout: 360
+    when: "reboot_hint.stdout == 'reboot'"      

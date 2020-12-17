@@ -1,0 +1,5 @@
+# Create everything
+- hosts: hypervisor
+  user: root
+  roles:     
+    - role: 03_create

@@ -1,0 +1,7 @@
+#!/bin/bash
+
+{% for n in nodes %}
+{% for d in n.disk %}
+qemu-img create {{ hypervisor.workdir }}/{{ d.name }} {{ d.size }}
+{% endfor %}    
+{% endfor %}

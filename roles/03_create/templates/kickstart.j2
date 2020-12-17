@@ -1,0 +1,70 @@
+firewall --disabled
+install
+rootpw --iscrypted {{ root_pw_hash }}
+auth useshadow passalgo=sha512
+firstboot disable
+keyboard us
+lang en_US
+selinux disabled
+logging level=info
+timezone {{ timezone }}
+bootloader location=mbr
+clearpart --all --initlabel
+ignoredisk --only-use="sda"
+part /boot --fstype ext4 --size=300
+part pv.01 --size=1 --grow
+volgroup root_vg01 pv.01
+logvol / --fstype ext4 --name=lv_01 --vgname=root_vg01 --size=1 --grow
+bootloader --location=mbr --append="net.ifnames=0 biosdevname=0"
+reboot
+%packages
+@^minimal
+@core
+%end
+%addon com_redhat_kdump --disable --reserve-mb='auto'
+%end
+%post
+mkdir -pv /root/.ssh
+chmod 700 /root/.ssh
+
+{% for k in authorized_keys %}
+    /bin/echo -e "{{ k }}" >> /root/.ssh/authorized_keys
+{% endfor %}
+
+# OAM network:
+echo "net.ipv6.conf.eth0.disable_ipv6 = 1" >> /etc/sysctl.conf
+cat << EOF > etc/sysconfig/network-scripts/ifcfg-eth0
+DEVICE=eth0
+ONBOOT=yes
+IPADDR={{ oam_ip_address }}
+MTU=1500
+NETMASK={{ network.oam.netmask }}
+GATEWAY={{ network.oam.gateway }}
+EOF
+
+# External networks:
+
+{% for n in node.external_ips %}
+
+# Disable ipv6 for external networks 
+echo "net.ipv6.conf.eth{{ loop.index }}.disable_ipv6 = 1" >> /etc/sysctl.conf
+
+# Define IP configuration for external network 
+
+cat << EOF > etc/sysconfig/network-scripts/ifcfg-eth{{ loop.index }}
+DEVICE=eth{{ loop.index }}
+ONBOOT=yes
+IPADDR={{ n }}
+MTU=1500
+NETMASK={{ network.external[loop.index - 1].netmask }}
+EOF
+{% endfor %}
+
+
+cat << EOF > /etc/resolv.conf
+nameserver {{ network.oam.dns }}
+EOF
+
+echo "{{ node_name }}.{{ network.domain }}" > /etc/hostname
+
+%end
