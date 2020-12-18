@@ -48,7 +48,7 @@ cat << EOF > config.yml
     external:
       - name: extnet01
         external_vlan: 62
-        external_interface: eth1
+        external_interface: eth0
         network: 10.7.0.0        
         broadcast: 10.7.0.255        
         netmask: 255.255.255.0
@@ -60,7 +60,7 @@ cat << EOF > config.yml
 
       - name: extnet02
         external_vlan: 63
-        external_interface: eth2
+        external_interface: eth0
         network: 10.8.0.0        
         broadcast: 10.8.0.255        
         netmask: 255.255.255.0
