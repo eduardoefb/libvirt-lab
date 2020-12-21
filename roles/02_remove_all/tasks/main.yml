@@ -37,11 +37,11 @@
       name: "{{ network.oam.name }}"
     ignore_errors: yes
   
-  - name: Delete other networks
+  - name: Delete external networks
     community.libvirt.virt_net:
       state: inactive
       name: "{{ item.name }}"
     ignore_errors: yes
     with_items:
-      - "{{ network.other }}"
+      - "{{ network.external }}"
           
